@@ -14,23 +14,22 @@ fetch('main.wasm').then(function(response) {
     response.arrayBuffer().then(function(buffer) {
         WebAssembly.compile(buffer).then(function(module) {
 
-            const memory = new WebAssembly.Memory({ initial: 32 });
             const decoder = new TextDecoder("utf-8");
             const imports = {
                 env: {
-                    memory: memory,
-                    __indirect_function_table: new WebAssembly.Table({ initial: 1, maximum: 1, element: 'anyfunc' }),
                     __play_with_js: function() {
                         return 42;
                     },
                     __console_log: function(str, len) {
-                        console.log(decoder.decode(memory.buffer.slice(str, str + len)));
+                        console.log(decoder.decode(instance.exports.memory.buffer.slice(str, str + len)));
                     },
                 },
             };
 
             WebAssembly.instantiate(module, imports).then(function(instance) {
-                console.log(instance.exports.do_something(2));
+                console.log('MEMORY SIZE BEFORE', instance.exports.memory.buffer.byteLength / 65536)
+                console.log(instance.exports.do_something())
+                console.log('MEMORY SIZE AFTER', instance.exports.memory.buffer.byteLength / 65536)
             });
         });
     });
